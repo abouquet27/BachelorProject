@@ -1,17 +1,15 @@
-void check(int a){
+#include <stdio.h>
+
+void  check(int a){
+  int x = 0;
   if (a >= 5) {
     printf("a is greater than 5");
-    return;
+    x = 5;
   }
   else {
-    printf("a is less than 5");
-    return;
+    x = 10;
   }
-}
 
-int main()
-{
-  int d = 1;
-  check(d);
-  return 5;
+  int y = x + a;
+
 }
