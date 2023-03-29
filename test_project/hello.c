@@ -3,7 +3,6 @@
 void  check(int a){
   int x = 0;
   if (a >= 5) {
-    printf("a is greater than 5");
     x = 5;
   }
   else {
