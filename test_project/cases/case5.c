@@ -4,12 +4,13 @@ void  check(int a){
   if (a >= 5) {
     x = 5;
   }
-    if (a < 10) {
-        x = 10;
-    }
-    else {
-        x = 20;
-    }
+  
+  if (a < 10) {
+      x = 10;
+  }
+  else {
+      x = 20;
+  }
 
 
   int y = x + a;

@@ -9,10 +9,12 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/PatternMatch.h"
 #include <list>
+#include <map>
 
 
 using namespace llvm;
 using namespace llvm::PatternMatch;
+using namespace std;
 double alpha = 0.5;
 double beta = 0.6;
 int kappa = 1;
@@ -59,13 +61,13 @@ double matchValue(Value* tested, Value* searched){ //add the value type
         return 0;
     }
     if (llvm::isa<llvm::Instruction>(tested)){
-        //errs() << "Instruction: " << *tested << "\n";
+        //errs() << "Trackback Instruction: " << *tested << "\n";
         Instruction *I = dyn_cast<Instruction>(tested);
 
         if (llvm::isa<llvm::LoadInst>(I)){
             //errs() << "Load instruction found " << "\n";
             LoadInst *LI = dyn_cast<LoadInst>(I);
-            Instruction * nextInst = I->getPrevNode();
+            Instruction * nextInst = LI;
             while (nextInst != NULL) {
                 //errs() << "Next instruction: " << *nextInst << "\n";
                 if (llvm::isa<llvm::StoreInst>(nextInst)){
@@ -77,17 +79,20 @@ double matchValue(Value* tested, Value* searched){ //add the value type
                             return 1;
                         }
                         //errs() << "Found a store but it is not related  " << *nextInst << "\n";
+                        return 0;
                     }
                 }
+
                 
-                if (nextInst == &I->getParent()->front()){
+                if (nextInst == &nextInst->getParent()->front()){
                     //errs() << "No more instructions check the next block " << "\n";
                     if(I->getParent()->getPrevNode() == NULL){
                         //errs() << "No more instructions " << "\n";
                         return 0;
                     };
-                    nextInst = &I->getParent()->getPrevNode()->back();
+                    nextInst = &nextInst->getParent()->getPrevNode()->back();
                 } else {
+                    //errs() << "Test " << "\n";
                     nextInst = nextInst->getPrevNode();
                 }
             }
@@ -104,8 +109,8 @@ double matchValue(Value* tested, Value* searched){ //add the value type
 
             double res = matchValue(V, searched);
             result = result || res;
-            return result;
         }
+        return result;
 
     } else {
         return 0;
@@ -120,7 +125,7 @@ double q(Instruction *Inst, Value* researched, double(*computeFunction)(Value*, 
         //errs() << "No more instructions " << "\n";
         return 0;
     } else {
-        errs() << "Instruction: " << *Inst << "\n";
+        //errs() << "Instruction: " << *Inst << "\n";
         if (llvm::isa <llvm::BranchInst> (Inst)){
             const BranchInst *BI = dyn_cast<BranchInst>(Inst);
             
@@ -128,9 +133,10 @@ double q(Instruction *Inst, Value* researched, double(*computeFunction)(Value*, 
                 // The instruction is a conditional Branch instruction if (e) go to L'' else go to succ(L')
                 // it means there is 2 successors
 
-                errs() << "Conditional branch instruction found " << "\n";
+                //errs() << "Conditional branch instruction found " << "\n";
                 Value* v = BI->getCondition();
                 double part3 = computeFunction(v, researched);
+                //errs() << "Part3: " << part3 << "\n";
 
                 double part1 = beta*q(&BI->getSuccessor(0)->front(), researched, computeFunction);
                 double part2 = beta*q(&BI->getSuccessor(1)->front(), researched, computeFunction);
@@ -162,10 +168,10 @@ bool FirstQueryPass::runOnFunction(Function &F) {
     
     double result1 = q(firstInst, arg, matchValue);
 
-    errs() << "Result1: " << result1 << "\n";
 
     double result2 = q(firstInst, arg, returnTrueFunction);
 
+    errs() << "Result1: " << result1 << "\n";
     errs() << "Result2: " << result2 << "\n";
 
     int result = isAHotVariable(result1, result2);
@@ -175,35 +181,7 @@ bool FirstQueryPass::runOnFunction(Function &F) {
     } else {
         errs() << "The variable" << *arg << " is not a hot variable " << "\n";
     }
-    // for (BasicBlock &BB : F) {
-    //     //errs() << "New Block " << "\n";
-    //     for (Instruction &I : BB) {
-    //         // The instruction is a Branch instruction
-    //         if (llvm::isa <llvm::BranchInst> (I)){
-    //             //errs() << "Branch instruction found " << "\n";
-    //             const BranchInst *BI = dyn_cast<BranchInst>(&I);
-    //             // The instruction is a condition Branch instruction
-    //             if (BI->isConditional()){
-    //                 errs() << "Conditional branch instruction found " << "\n";
 
-    //                 Value* cond = BI->getCondition();
-    //                 errs() << "Condition: " << *cond << "\n";
-
-    //                 matchValue(cond, arg);
-
-
-    //                 // for (const llvm::Use &Op : BI->operands()) {
-    //                 //     Value *V = Op.get();
-    //                 //     errs() << "Operand: " << *V << "\n";
-    //                 // }
-    //             }
-    //         }
-           
-
-
-            
-    //     }
-    // }
     return false;
 }
 
