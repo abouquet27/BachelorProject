@@ -9,7 +9,7 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/PatternMatch.h"
 #include <list>
-#include <map>
+#include <algorithm>
 
 
 using namespace llvm;
@@ -19,6 +19,9 @@ double alpha = 0.5;
 double beta = 0.6;
 int kappa = 1;
 
+int nloops = 1;
+int dcalls = 0;
+
 namespace {
     struct FirstQueryPass : public FunctionPass {
         public:
@@ -27,6 +30,19 @@ namespace {
             virtual bool runOnFunction(Function &F) override;
     };
 }
+
+struct BranchCount {
+    const BranchInst *BI;
+    int count = 0;
+};
+
+struct CallCount {
+    CallInst *CI;
+    int count = 0;
+};
+
+list<BranchCount> branchList;
+list<CallCount> callList;
 
 void printAllOperands(Value* val){
     if(val == NULL) {
@@ -48,6 +64,27 @@ double returnTrueFunction (Value* v1, Value *v2){
     return 1;
 }
 
+double checkBackwardBranch(BasicBlock * searched, const BasicBlock * expected){
+   Function * F = searched->getParent();
+   BasicBlock * index = &F->front();
+
+   //errs() << "Searching for: " << *searched << "\n";
+   //errs() << "Expected: " << *expected << "\n";
+
+   for (BasicBlock &BB : *F) {
+        if (&BB == searched){
+            //errs() << "Found the searched block " << "\n";
+            return 1;
+        }
+        if (&BB == expected){
+            //errs() << "Found the expected block " << "\n";
+            return 0;
+        }
+   }
+   return 0;
+
+}
+
 int isAHotVariable(double Qadd, double Qt){
     if ( Qadd > alpha*Qt){
         return 1;
@@ -64,43 +101,17 @@ double matchValue(Value* tested, Value* searched){ //add the value type
         //errs() << "Trackback Instruction: " << *tested << "\n";
         Instruction *I = dyn_cast<Instruction>(tested);
 
-        if (llvm::isa<llvm::LoadInst>(I)){
-            //errs() << "Load instruction found " << "\n";
-            LoadInst *LI = dyn_cast<LoadInst>(I);
-            Instruction * nextInst = LI;
-            while (nextInst != NULL) {
-                //errs() << "Next instruction: " << *nextInst << "\n";
-                if (llvm::isa<llvm::StoreInst>(nextInst)){
-                    StoreInst *SI = dyn_cast<StoreInst>(nextInst);
-                    Value *V = SI->getPointerOperand();
-                    if (LI->getPointerOperand() == SI->getPointerOperand()){
-                        if (SI->getValueOperand() == searched){
-                            //errs() << "Found a store and it is related " << *nextInst << " / " << *searched << "\n";
-                            return 1;
-                        }
-                        //errs() << "Found a store but it is not related  " << *nextInst << "\n";
-                        return 0;
-                    }
-                }
-
-                
-                if (nextInst == &nextInst->getParent()->front()){
-                    //errs() << "No more instructions check the next block " << "\n";
-                    if(I->getParent()->getPrevNode() == NULL){
-                        //errs() << "No more instructions " << "\n";
-                        return 0;
-                    };
-                    nextInst = &nextInst->getParent()->getPrevNode()->back();
-                } else {
-                    //errs() << "Test " << "\n";
-                    nextInst = nextInst->getPrevNode();
-                }
-            }
+        if (llvm::isa<llvm::PHINode>(I)){
+            //errs() << "PHI Node found " << "\n";
+            return 0;
         }
+
         double result = 0;
         for (const llvm::Use &Op : I->operands()) {
             Value *V = Op.get();
             //errs() << "Operand: " << *V << "\n";
+
+
 
             if (V == searched){
                 //errs() << "Found a match " << *V << "\n";
@@ -120,14 +131,34 @@ double matchValue(Value* tested, Value* searched){ //add the value type
 
 }
 
-double q(Instruction *Inst, Value* researched, double(*computeFunction)(Value*, Value*)){
+double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranches, double(*computeFunction)(Value*, Value*)){
     if (Inst ==NULL ||llvm::isa <llvm::ReturnInst> (Inst)) {
         //errs() << "No more instructions " << "\n";
         return 0;
     } else {
         //errs() << "Instruction: " << *Inst << "\n";
+        if (llvm:: isa <llvm:: CallInst>(Inst)){
+            errs() << "Call instruction found " << "\n";
+            CallInst *CI = dyn_cast<CallInst>(Inst);
+
+            Function *F = CI->getCalledFunction();
+
+            errs() << "Function called: " << F->getName() << "\n";
+
+            for (auto &dop: CI->data_ops()){
+                Value *V = dop.get();
+                errs() << "Argument: " << *V << "\n";
+
+                if (matchValue(V, researched)){
+                    return q(&F->front().front(), researched, backwardBranches, computeFunction);
+                }
+
+            }
+        }
+
         if (llvm::isa <llvm::BranchInst> (Inst)){
             const BranchInst *BI = dyn_cast<BranchInst>(Inst);
+
             
             if (BI->isConditional()){
                 // The instruction is a conditional Branch instruction if (e) go to L'' else go to succ(L')
@@ -136,52 +167,94 @@ double q(Instruction *Inst, Value* researched, double(*computeFunction)(Value*, 
                 //errs() << "Conditional branch instruction found " << "\n";
                 Value* v = BI->getCondition();
                 double part3 = computeFunction(v, researched);
-                //errs() << "Part3: " << part3 << "\n";
 
-                double part1 = beta*q(&BI->getSuccessor(0)->front(), researched, computeFunction);
-                double part2 = beta*q(&BI->getSuccessor(1)->front(), researched, computeFunction);
+                double part1 = beta*q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction);
+                double part2 = beta*q(&BI->getSuccessor(1)->front(), researched, backwardBranches, computeFunction);
                
                 return part1 + part2 + part3;
            
+            } else {
+                //errs() << "Unconditional branch instruction found " << "\n";
+                BasicBlock *BB = BI->getSuccessor(0);
+                const BasicBlock *Parent = BI->getParent();
+
+                if (checkBackwardBranch(BB, Parent)){
+                    //errs() << "Backward branch found " << "\n";
+                    // contains 
+                    bool found = false;
+                    for (auto &branch : backwardBranches){
+                        if (branch.BI == BI){
+                            found = true;
+                        }
+                    }
+
+                    if(!found){
+                        backwardBranches.push_back(BranchCount{BI, 0});
+                    }
+
+                    for (auto &branch : backwardBranches){
+                        if (branch.BI == BI){
+                            if (branch.count == nloops-1){
+                                //errs() << "Backward branch count exceeded " << "\n";
+                                backwardBranches.pop_back();
+                                return 0;
+                            }
+                            branch.count++;
+                            return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction);
+                        }
+                    }
+                    return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction);
+                }
+
+                //errs() << "Backward branch not found " << "\n";
+                // The instruction is an unconditional Branch instruction
+                // it means there is 1 successor
+                return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction); 
             }
 
-            // The instruction is an unconditional Branch instruction
-            // it means there is 1 successor
-            return q(&BI->getSuccessor(0)->front(), researched, computeFunction);         
+                    
         } 
 
         // The instruction is not a branch of 
-        return q(Inst->getNextNode(), researched, computeFunction);
+        return q(Inst->getNextNode(), researched, backwardBranches, computeFunction);
         
     }
-    
 }
 
 
 bool FirstQueryPass::runOnFunction(Function &F) {
-    //errs() << "Visiting function " << F.getName() << "\n";
-
-    Value* arg = F.getArg(0);
-    errs() << "Argument: " << *arg << "\n";
+    errs() << "Visiting function " << F.getName() << "\n";
 
     Instruction* firstInst = &F.getEntryBlock().front();
-    
-    double result1 = q(firstInst, arg, matchValue);
+
+    list<BranchCount> branchList;
+    list<CallCount> callList;
+
+    for (auto &arg : F.args()) {
+
+        list<BranchCount> branchList;
+        list<CallCount> callList;
+        errs() << "Argument: " << arg << "\n";
+
+        Value * v = dyn_cast<Value>(&arg);
+
+        double result1 = q(firstInst, v, branchList, matchValue);
 
 
-    double result2 = q(firstInst, arg, returnTrueFunction);
+        double result2 = q(firstInst, v, branchList, returnTrueFunction);
 
-    errs() << "Result1: " << result1 << "\n";
-    errs() << "Result2: " << result2 << "\n";
+        errs() << "MatchValueFunction: " << result1 << "\n";
+        errs() << "TrueFunction: " << result2 << "\n";
 
-    int result = isAHotVariable(result1, result2);
+        //int result = isAHotVariable(result1, result2);
 
-    if (result == 1){
-        errs() << "The variable" << *arg << " is a hot variable " << "\n";
-    } else {
-        errs() << "The variable" << *arg << " is not a hot variable " << "\n";
+        if (isAHotVariable(result1, result2)){
+            errs() << "The variable " << arg << " is a hot variable " << "\n";
+        } else {
+            errs() << "The variable " << arg << " is not a hot variable " << "\n";
+        }
+        errs() << "\n";
     }
-
     return false;
 }
 

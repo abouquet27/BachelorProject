@@ -1,6 +1,6 @@
 void  messyFunction(int x, int a, int b, int c, int d, int e, int f){
     int result = x + 4;
-    result = a*b ;
+    result = a*c ;
     result = c*result -d;
     result = (f-e + 34)*result;
 

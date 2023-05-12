@@ -1,4 +1,4 @@
-void  check(int a){
+__attribute__((used)) void check(int a){
   int x = 0;
   int b = 19;
   if (a >= 5) {

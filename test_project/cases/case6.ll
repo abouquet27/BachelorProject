@@ -1,31 +1,29 @@
-; ModuleID = 'cases/case5.ll'
-source_filename = "cases/case5.c"
+; ModuleID = 'cases/case6.ll'
+source_filename = "cases/case6.c"
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx13.0.0"
 
-@llvm.used = appending global [1 x ptr] [ptr @check], section "llvm.metadata"
-
 ; Function Attrs: noinline nounwind ssp uwtable
-define void @check(i32 noundef %0) #0 {
-  %2 = icmp sge i32 %0, 5
-  br i1 %2, label %3, label %4
+define void @forloopfunction(i32 noundef %0) #0 {
+  br label %2
 
-3:                                                ; preds = %1
-  br label %4
+2:                                                ; preds = %7, %1
+  %.02 = phi i32 [ 0, %1 ], [ %6, %7 ]
+  %.01 = phi i32 [ 0, %1 ], [ %5, %7 ]
+  %.0 = phi i32 [ 0, %1 ], [ %8, %7 ]
+  %3 = icmp slt i32 %.0, 10
+  br i1 %3, label %4, label %9
 
-4:                                                ; preds = %3, %1
-  %5 = icmp slt i32 %0, 10
-  br i1 %5, label %6, label %7
-
-6:                                                ; preds = %4
-  br label %8
+4:                                                ; preds = %2
+  %5 = add nsw i32 %.01, 1
+  %6 = add nsw i32 %.02, 1
+  br label %7
 
 7:                                                ; preds = %4
-  br label %8
+  %8 = add nsw i32 %.0, 1
+  br label %2, !llvm.loop !5
 
-8:                                                ; preds = %7, %6
-  %.0 = phi i32 [ 10, %6 ], [ 20, %7 ]
-  %9 = add nsw i32 %.0, %0
+9:                                                ; preds = %2
   ret void
 }
 
@@ -39,3 +37,5 @@ attributes #0 = { noinline nounwind ssp uwtable "frame-pointer"="all" "min-legal
 !2 = !{i32 7, !"uwtable", i32 2}
 !3 = !{i32 7, !"frame-pointer", i32 2}
 !4 = !{!"Homebrew clang version 16.0.1"}
+!5 = distinct !{!5, !6}
+!6 = !{!"llvm.loop.mustprogress"}
