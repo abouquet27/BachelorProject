@@ -10,6 +10,7 @@
 #include "llvm/IR/PatternMatch.h"
 #include <list>
 #include <algorithm>
+#include <stdio.h>
 
 
 using namespace llvm;
@@ -20,7 +21,9 @@ double beta = 0.6;
 int kappa = 1;
 
 int nloops = 1;
-int dcalls = 0;
+int dcalls = 1;
+
+string tabPrefix = "";
 
 namespace {
     struct FirstQueryPass : public FunctionPass {
@@ -37,12 +40,10 @@ struct BranchCount {
 };
 
 struct CallCount {
-    CallInst *CI;
+    Function *F;
     int count = 0;
 };
 
-list<BranchCount> branchList;
-list<CallCount> callList;
 
 void printAllOperands(Value* val){
     if(val == NULL) {
@@ -53,7 +54,6 @@ void printAllOperands(Value* val){
         for (const llvm::Use &Op : I->operands()) {
             Value *V = Op.get();
             errs() << "Operand: " << *V << "\n";
-            printAllOperands(dyn_cast<Instruction>(V));
         }
     }
     return;
@@ -97,16 +97,23 @@ double matchValue(Value* tested, Value* searched){ //add the value type
     if (tested == NULL){
         return 0;
     }
+
+    if(tested == searched){
+        return 1;
+    }
+
     if (llvm::isa<llvm::Instruction>(tested)){
-        //errs() << "Trackback Instruction: " << *tested << "\n";
+        errs() << "Trackback Instruction: " << *tested << "\n";
         Instruction *I = dyn_cast<Instruction>(tested);
 
         if (llvm::isa<llvm::PHINode>(I)){
-            //errs() << "PHI Node found " << "\n";
+            errs() << "PHI Node found " << "\n";
             return 0;
         }
 
         double result = 0;
+
+        printAllOperands(I);
         for (const llvm::Use &Op : I->operands()) {
             Value *V = Op.get();
             //errs() << "Operand: " << *V << "\n";
@@ -114,7 +121,7 @@ double matchValue(Value* tested, Value* searched){ //add the value type
 
 
             if (V == searched){
-                //errs() << "Found a match " << *V << "\n";
+                errs() << "Found a match " << *V << "\n";
                 return 1;
             }
 
@@ -131,29 +138,69 @@ double matchValue(Value* tested, Value* searched){ //add the value type
 
 }
 
-double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranches, double(*computeFunction)(Value*, Value*)){
+double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranches, list<CallCount> recursionCount, double(*computeFunction)(Value*, Value*)){
     if (Inst ==NULL ||llvm::isa <llvm::ReturnInst> (Inst)) {
         //errs() << "No more instructions " << "\n";
         return 0;
     } else {
-        //errs() << "Instruction: " << *Inst << "\n";
+        //errs() << tabPrefix << "Instruction: " << *Inst << "\n";
         if (llvm:: isa <llvm:: CallInst>(Inst)){
-            errs() << "Call instruction found " << "\n";
             CallInst *CI = dyn_cast<CallInst>(Inst);
+            //errs() << tabPrefix << "Call Instruction Found" << "\n";
 
-            Function *F = CI->getCalledFunction();
-
-            errs() << "Function called: " << F->getName() << "\n";
-
+            int index = 0;
             for (auto &dop: CI->data_ops()){
+                
                 Value *V = dop.get();
-                errs() << "Argument: " << *V << "\n";
+                //errs() << tabPrefix << "Argument: " << *V << "\n";
 
                 if (matchValue(V, researched)){
-                    return q(&F->front().front(), researched, backwardBranches, computeFunction);
-                }
+                    Function *F = CI->getCalledFunction();
 
+                    //errs() << tabPrefix << "Function called: " << F->getName() << "\n";
+
+                    bool found = false;
+                    for (auto &call : recursionCount){
+                        if (call.F == F){
+                            found = true;
+                        }
+                    }
+
+                    if(!found){
+                        //errs() << tabPrefix << "Adding a new call to the list" << "\n";  
+                        recursionCount.push_front(CallCount{F, 0});
+                    }
+
+                    for (auto &call : recursionCount){
+                        if (call.F == F){
+
+                            if (call.count > dcalls){
+                                //errs() << tabPrefix << "Maximum recursion detected " << "\n";
+                                return 0;
+                            }
+                            call.count++;
+                        }
+                    }
+
+                    Argument* arg = F->getArg(index);
+
+                    //errs() << tabPrefix << "Outside the call" << *(Inst->getNextNode()) << "\n";
+                    double outside_call = q(Inst->getNextNode(), researched, backwardBranches, recursionCount, computeFunction);
+                    
+                    string tmpPrefix = tabPrefix;
+                    tabPrefix += "  ";
+                    //errs() << tabPrefix << "Inside the call" << *(&F->front().front()) << "\n";
+                    double inside_call = q(&F->front().front(), arg, backwardBranches, recursionCount, computeFunction); 
+                    tabPrefix = tmpPrefix;
+
+                    //errs() << tabPrefix << "Inside call: " << inside_call << "\n";
+                    //errs() << tabPrefix << "Outside call: " << outside_call << "\n";
+
+                    return inside_call + outside_call;  
+                }
+            index++;
             }
+            
         }
 
         if (llvm::isa <llvm::BranchInst> (Inst)){
@@ -164,12 +211,12 @@ double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranche
                 // The instruction is a conditional Branch instruction if (e) go to L'' else go to succ(L')
                 // it means there is 2 successors
 
-                //errs() << "Conditional branch instruction found " << "\n";
+                errs() << "Conditional branch instruction found " << *BI << "\n";
                 Value* v = BI->getCondition();
                 double part3 = computeFunction(v, researched);
 
-                double part1 = beta*q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction);
-                double part2 = beta*q(&BI->getSuccessor(1)->front(), researched, backwardBranches, computeFunction);
+                double part1 = beta*q(&BI->getSuccessor(0)->front(), researched, backwardBranches, recursionCount, computeFunction);
+                double part2 = beta*q(&BI->getSuccessor(1)->front(), researched, backwardBranches, recursionCount, computeFunction);
                
                 return part1 + part2 + part3;
            
@@ -194,29 +241,28 @@ double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranche
 
                     for (auto &branch : backwardBranches){
                         if (branch.BI == BI){
-                            if (branch.count == nloops-1){
+                            if (branch.count > nloops-1){
                                 //errs() << "Backward branch count exceeded " << "\n";
-                                backwardBranches.pop_back();
                                 return 0;
                             }
                             branch.count++;
-                            return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction);
+                            return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, recursionCount, computeFunction);
                         }
                     }
-                    return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction);
+                    return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, recursionCount, computeFunction);
                 }
 
                 //errs() << "Backward branch not found " << "\n";
                 // The instruction is an unconditional Branch instruction
                 // it means there is 1 successor
-                return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, computeFunction); 
+                return q(&BI->getSuccessor(0)->front(), researched, backwardBranches, recursionCount, computeFunction); 
             }
 
                     
         } 
 
         // The instruction is not a branch of 
-        return q(Inst->getNextNode(), researched, backwardBranches, computeFunction);
+        return q(Inst->getNextNode(), researched, backwardBranches, recursionCount, computeFunction);
         
     }
 }
@@ -225,23 +271,30 @@ double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranche
 bool FirstQueryPass::runOnFunction(Function &F) {
     errs() << "Visiting function " << F.getName() << "\n";
 
-    Instruction* firstInst = &F.getEntryBlock().front();
 
-    list<BranchCount> branchList;
-    list<CallCount> callList;
+    // for (auto &gl: F.getParent()->globals()){
+        
+    //     errs() << "Global: " << gl << "\n";
+    //     errs() << "Global name: " << gl.getName() << "\n";
+    // }
+
+    Instruction* firstInst = &F.getEntryBlock().front();
 
     for (auto &arg : F.args()) {
 
-        list<BranchCount> branchList;
-        list<CallCount> callList;
         errs() << "Argument: " << arg << "\n";
+        errs() << "Argument name: " << arg.getName() << "\n";
 
         Value * v = dyn_cast<Value>(&arg);
 
-        double result1 = q(firstInst, v, branchList, matchValue);
+        list<BranchCount> branchList1;
+        list<CallCount> callList1;
+        double result1 = q(firstInst, v, branchList1, callList1, matchValue);
 
+        list<BranchCount> branchList2;
+        list<CallCount> callList2;
 
-        double result2 = q(firstInst, v, branchList, returnTrueFunction);
+        double result2 = q(firstInst, v, branchList2, callList2, returnTrueFunction);
 
         errs() << "MatchValueFunction: " << result1 << "\n";
         errs() << "TrueFunction: " << result2 << "\n";
@@ -254,6 +307,8 @@ bool FirstQueryPass::runOnFunction(Function &F) {
             errs() << "The variable " << arg << " is not a hot variable " << "\n";
         }
         errs() << "\n";
+
+        assert(true);
     }
     return false;
 }

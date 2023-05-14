@@ -1,22 +1,39 @@
-; ModuleID = 'cases/case2.ll'
-source_filename = "cases/case2.c"
+; ModuleID = 'cases/case10.ll'
+source_filename = "cases/case10.c"
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx13.0.0"
 
 ; Function Attrs: noinline nounwind ssp uwtable
-define void @check2(i32 noundef %0) #0 {
-  %2 = icmp sge i32 19, 5
-  br i1 %2, label %3, label %4
+define void @recursionFun(i32 noundef %0) #0 {
+  %2 = icmp sgt i32 %0, 0
+  br i1 %2, label %3, label %5
 
 3:                                                ; preds = %1
-  br label %5
+  %4 = sub nsw i32 %0, 1
+  call void @recursionFun(i32 noundef %4)
+  br label %6
+
+5:                                                ; preds = %1
+  br label %6
+
+6:                                                ; preds = %5, %3
+  ret void
+}
+
+; Function Attrs: noinline nounwind ssp uwtable
+define void @main(i32 noundef %0) #0 {
+  %2 = srem i32 %0, 2
+  %3 = icmp eq i32 %2, 0
+  br i1 %3, label %4, label %5
 
 4:                                                ; preds = %1
-  br label %5
+  call void @recursionFun(i32 noundef %0)
+  br label %6
 
-5:                                                ; preds = %4, %3
-  %.0 = phi i32 [ 5, %3 ], [ 10, %4 ]
-  %6 = add nsw i32 %.0, %0
+5:                                                ; preds = %1
+  br label %6
+
+6:                                                ; preds = %5, %4
   ret void
 }
 

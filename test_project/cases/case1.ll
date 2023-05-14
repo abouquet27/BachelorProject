@@ -3,6 +3,10 @@ source_filename = "cases/case1.c"
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx13.0.0"
 
+%struct.result = type { double }
+
+@res_a = global %struct.result { double 1.000000e+00 }, align 8
+
 ; Function Attrs: noinline nounwind ssp uwtable
 define void @check(i32 noundef %0) #0 {
   %2 = icmp sge i32 %0, 5

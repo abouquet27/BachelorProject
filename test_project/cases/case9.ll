@@ -3,7 +3,7 @@ source_filename = "cases/case9.c"
 target datalayout = "e-m:o-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx13.0.0"
 
-@.str = private unnamed_addr constant [19 x i8] c"Need some recusion\00", align 1
+@.str = private unnamed_addr constant [17 x i8] c"recursion needed\00", align 1
 
 ; Function Attrs: noinline nounwind ssp uwtable
 define void @recursionFunc(i32 noundef %0) #0 {
@@ -14,12 +14,9 @@ define void @recursionFunc(i32 noundef %0) #0 {
   %4 = call i32 (ptr, ...) @printf(ptr noundef @.str)
   %5 = sub nsw i32 %0, 1
   call void @recursionFunc(i32 noundef %5)
-  br label %7
+  br label %6
 
-6:                                                ; preds = %1
-  br label %7
-
-7:                                                ; preds = %6, %3
+6:                                                ; preds = %3, %1
   ret void
 }
 

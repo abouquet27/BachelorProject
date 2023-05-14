@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include "result.h"
+
+result_t res_a = {1.0};
+
 
 void  check(int a){
   int x = 0;
