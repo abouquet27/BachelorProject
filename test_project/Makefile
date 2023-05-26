@@ -6,10 +6,11 @@ CC = clang
 PASSFLAGS = -std=c++17 -g3 -shared  -Wl,-headerpad_max_install_names -undefined dynamic_lookup
 CASESFLAGS = 
 export cs = case1
+EXPORT PATH := /usr/local/opt/llvm/bin:$PATH"
 
 INCLUDES = -I /usr/local/opt/llvm/include
 
-cases = case1 case2 case3 case4 case5 case6 case7 case8 case9 messyCode
+cases = case1 caseTestFromDoc case2 case3 case4 case5 case6 case7 case8 case9 messyCode 
 
 all: $(cases) 
 

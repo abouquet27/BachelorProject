@@ -44,6 +44,12 @@ struct CallCount {
     int count = 0;
 };
 
+void printAllArgs(Function *F){
+    for (auto &arg: F->args()){
+        errs() << "Argument: " << arg << "\n";
+    }
+}
+
 
 void printAllOperands(Value* val){
     if(val == NULL) {
@@ -103,11 +109,11 @@ double matchValue(Value* tested, Value* searched){ //add the value type
     }
 
     if (llvm::isa<llvm::Instruction>(tested)){
-        errs() << "Trackback Instruction: " << *tested << "\n";
+        //errs() << "Trackback Instruction: " << *tested << "\n";
         Instruction *I = dyn_cast<Instruction>(tested);
 
         if (llvm::isa<llvm::PHINode>(I)){
-            errs() << "PHI Node found " << "\n";
+            //errs() << "PHI Node found " << "\n";
             return 0;
         }
 
@@ -121,7 +127,7 @@ double matchValue(Value* tested, Value* searched){ //add the value type
 
 
             if (V == searched){
-                errs() << "Found a match " << *V << "\n";
+                //errs() << "Found a match " << *V << "\n";
                 return 1;
             }
 
@@ -182,12 +188,26 @@ double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranche
                         }
                     }
 
+                    //errs() << tabPrefix << "index " << index << "\n";
+                    //errs() << tabPrefix << "The function is varArgs: " << F->isVarArg() << "\n";
+    
+                    printAllArgs(F);
+
+                    string tmpPrefix = tabPrefix;
+                    tabPrefix += "  ";  
+
+                    if(F->isDeclaration()){
+                        //errs() << tabPrefix << "Function is a declaration" << "\n";
+                        return 0;
+                    }
+
+                    //errs() << tabPrefix << "Finish to print the args" << "\n";
                     Argument* arg = F->getArg(index);
 
                     //errs() << tabPrefix << "Outside the call" << *(Inst->getNextNode()) << "\n";
                     double outside_call = q(Inst->getNextNode(), researched, backwardBranches, recursionCount, computeFunction);
                     
-                    string tmpPrefix = tabPrefix;
+
                     tabPrefix += "  ";
                     //errs() << tabPrefix << "Inside the call" << *(&F->front().front()) << "\n";
                     double inside_call = q(&F->front().front(), arg, backwardBranches, recursionCount, computeFunction); 
@@ -211,7 +231,7 @@ double q(Instruction *Inst, Value* researched, list<BranchCount> backwardBranche
                 // The instruction is a conditional Branch instruction if (e) go to L'' else go to succ(L')
                 // it means there is 2 successors
 
-                errs() << "Conditional branch instruction found " << *BI << "\n";
+                //errs() << "Conditional branch instruction found " << *BI << "\n";
                 Value* v = BI->getCondition();
                 double part3 = computeFunction(v, researched);
 
@@ -289,11 +309,15 @@ bool FirstQueryPass::runOnFunction(Function &F) {
 
         list<BranchCount> branchList1;
         list<CallCount> callList1;
+
+        errs() << "\nComputing the match Value function " << arg << "\n\n";
         double result1 = q(firstInst, v, branchList1, callList1, matchValue);
 
         list<BranchCount> branchList2;
         list<CallCount> callList2;
 
+
+        errs() << "Computing the true function " << arg << "\n";
         double result2 = q(firstInst, v, branchList2, callList2, returnTrueFunction);
 
         errs() << "MatchValueFunction: " << result1 << "\n";
