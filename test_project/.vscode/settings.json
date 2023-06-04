@@ -23,6 +23,17 @@
         "__tree": "cpp",
         "map": "cpp",
         "set": "cpp",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "__node_handle": "cpp",
+        "atomic": "cpp",
+        "bitset": "cpp",
+        "__memory": "cpp",
+        "limits": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "system_error": "cpp",
+        "type_traits": "cpp",
+        "cstddef": "cpp",
+        "random": "cpp"
     }
 }

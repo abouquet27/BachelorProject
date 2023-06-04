@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
+double result_arg = 1.6;
+double result_argv = 0.6;
+
 int main(int arg, char **argv) {
     int r = 1, argc = 1;
     // if (arg < argc)
