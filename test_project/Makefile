@@ -5,14 +5,14 @@ CC = clang
 #compiler flags
 PASSFLAGS = -std=c++17 -g3 -shared  -Wl,-headerpad_max_install_names -undefined dynamic_lookup
 CASESFLAGS = 
-export cs = caseTestFromDoc
+export cs = case
 EXPORT PATH := /usr/local/opt/llvm/bin:$PATH"
 
 INCLUDES = -I /usr/local/opt/llvm/include
 
 cases = basicCondition1 basicCondition2 basicCondition3 basicCondition4 basicCondition5
 cases += arrayfunction forloopfunction1 forloopfunction2 recursion1 recursion2 recursion3
-cases += caseTestFromDoc
+cases += caseTestFromDoc loopandrecursion1 loopandrecursion2 doubleforloop1 doublewhileloop forandwhileloopcombined
 all: $(cases) 
 
 $(cases): 

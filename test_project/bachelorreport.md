@@ -5,16 +5,11 @@ subtitle: "Bachelor Project - Spring 2023"
 documentclass: "scrartcl"
 ---
 
-## Introduction 
-    - Presentation du projet initial 
-    - What is a query
-    - "" Du langage
-    - "" De LLVM (particulièrement llvm assembly)
-    - "" De klee
-
 ## Definition of the problem
 
-The central point of this report is the implementation of the heuristic query count estimation (QCE) described in the first part of the paper. It is essential to explain the purpose of this heuristic in order to understand the implementation described below: In the context of symbolic execution, one of the objectives is to reduce the computational cost that the introduction of symbolic variables can generate so that we increase its efficiency. To do this, the paper proposes this QCE heuristic whose aim is to determine whether a variable $v$ at a location $l$ in the program is a sensitive variable (or a "hot variable" as denoted in the paper). As described in section 3.2, a variable $v$ is sensible (or hot) at location $l$ if the number of additional queries $Q_{add}(l,v)$ is greater than a fixed fraction $\alpha$ of the total number of queries $Q_t(l)$ (see §3.2). Consequently, the paper presents a formula to count recursively the number queries that are selected by a function $c$:
+The central point of this report is the implementation of the heuristic query count estimation (QCE)[^1] It is essential to explain the purpose of this heuristic in order to understand the implementation described below: In the context of symbolic execution, one of the objectives is to reduce the computational cost that the introduction of symbolic variables can generate so that we increase its efficiency. To do this, the paper proposes this QCE heuristic whose aim is to determine whether a variable $v$ at a location $l$ in the program is a sensitive variable (or a "hot variable" as denoted in the paper). As described in section 3.2, a variable $v$ is sensible (or hot) at location $l$ if the number of additional queries $Q_{add}(l,v)$ is greater than a fixed fraction $\alpha$ of the total number of queries $Q_t(l)$ (see §3.2). Consequently, the paper presents a formula to count recursively the number queries that are selected by a function $c$:
+
+[^1]: Described in the first part of the paper
 
 $$
 q(l',c) =
@@ -41,8 +36,6 @@ As a result, $Q_{add}$ becomes the evaluation of the formula when the function $
 However, this explanation is not sufficient in itself, as certain instructions are problematic as explained in the paper. Firstly, loops and recursion prevent the formula from stopping because of the recursive nature of its definition.  In the paper, a loop bound $\kappa$ is set to limit the maximum loop iterations and recursion calls. In addition, functions calls are problematic because they must be evaluated too and their number of queries must be added to the total one. Therefore, the next part below will explain the implementation of the LLVM pass with respect to the formulas and constraints stated before. 
 
 ## Implementation
-    - match value function
-    - the pass in itself
 
 Before describing the code in concrete terms, it is important to define the different variables used in the theory in terms of code, and more specifically in terms of LLVM assembly or C++. The equivalent of an  instruction $l$, as explained above, is the `Instruction` class, a variable $v$ as the paper intended will be have for equivalent the `Value` class, the function $q$ has for implementation the `compute_query` function described below and the function $c$ has for implementation either the `returnTrueFunction` or the `matchValue` also decribed below. 
 
@@ -74,15 +67,74 @@ When reaching the condition of the while loop, the index has been redefined and 
 
 ### The pass
 
+The pass computes twice the query count of a function for each its argument: once using the `matchValue` function described above and once using the `returnTrueFunction` to count the total number of queries. It then outputs the value using both function and if the variable is a hot variable. 
 
 ## Results
-    - Tested case (does it actually work ?)
     - case from the paper
-    - Case on a more complex code
     - Does it work on Coreutils 
         - Why coreutils ?
 
+### Basic cases
+
+In order to evaluate the correctness on basic code, a set of cases[^3] as been established to tests implementation and constraint handling, and we are going to demonstrate 2 of them.
+
+[^3]: https://github.com/abouquet27/BachelorProject/tree/main/test_project/cases
+
+#### Basic condition 
+
+```c
+void basicCondition(int a){
+  int x = 0;
+  int b = 19;
+  if (a >= 5) {
+    x = 5;
+  } else {
+    x = 10;
+  }
+  int y = x + a;
+}
+```
+
+This case is pretty straightforward when applying the pass as the variable tested $a$ is in the condition of the if and hence `matchValue` will return 1. Furthermore, the evaluation of the two branch will return $0$ each as there are not any conditions left. Thus, the query count will be equals to $1.0$ which is the value we theoretically expect. Here is the full expectation computation (line 1 correspond to the function header): 
+
+$$ Q_{add}(1,a) = q(1,c) = q(4,c) $$
+$$ = \beta q(7,c) + \beta q(5,c) + c(a >= 5,a)$$ 
+$$ = \beta q(10,c) + \beta q(10,c) + 1 = 0 + 0 + 1 = 1 $$
+
+#### Recursion
+
+```c
+void recursionFunction1(int x){
+    if (x > 0){
+        printf("recursion needed");
+        recursionFunction1(x-1);
+    } 
+}
+```
+
+The interesting aspect of this case is recursion. When evaluated the first time, `matchValue` will return $1$ on the first condition, the `printf` call will be skipped as it does the x variable and it will evaluate a second time the condition:
+
+$$ Q_{add}(1,x) = q(1,c) = q(2,c)  = \beta q(5,c) + \beta q(3,c) + c(x>0,x)$$ 
+$$ = \beta q(6,c) + \beta q(1,c) + 1 = \beta (\beta q(5,c) + \beta q(3,c) + c(x>0,x)) +1 $$
+$$ = \beta (0 + 0 + 1) +1 = 0.6 + 1 = 1.6$$
+
+More generally, the different base cases have all been computed manually before being submitted to the pass and comparing the results. About twenty base cases have been established, computed and tested to make sure the pass correctly work on these cases.
+
+### Example from the paper
+
+After creating cases to test the different issues the pass has to handle, the next step was testing it on the example from the paper[^4]. The paper uses this simplified version of the `echo` program. However, the example has been truncated to make it work using the pass, mainly by adding the variable 'arg' in the arguments of the function. Consequently, the pass computes $1.6$ which is the same value as the one computed by the paper and hence slightly strengthens the correctness of the pass
+
+[^4]: Figure 1 page 5
+
+### Applying the pass Coreutils
+
+An 
+
+
+
 ## Limitations
+
+    Although the pass works on a number of situations
     - Very theoritical pass
     - Can be improved 
         - Existing pass that can improve the code
@@ -90,22 +142,14 @@ When reaching the condition of the while loop, the index has been redefined and 
     - Tested on some cases but is not garanteed 
         - Still crash
         - Generic function
+        - Function that are from an external library
         - Not properly proved
 
 ## Personnal discoveries
-    - First big project on my own at EPFL
-        - Autonomy
-        - Managing the hours
-        - Not necessarily useful, but code closer to reality 
-    - Working with new differents languages, tools or library (llvm, C++, etc)
-        - Being able to adapt
-    - Notion of research 
-    - Application or a deeper understanding of concepts
-        - Compiler
-        - Symbolic Execution
 
-    
+This project has been a great learning experience on a large range of aspects. To start, it was my first big personal project in computer science and at EPFL. It required a lot of autonomy and a capacity of managing the hours for a result that won't be necessarily useful but that is closer to reality than exercices seen during courses. 
 
-## Conclusion
+Speaking of courses, this project and working with llvm was a good application of concepts seen during courses as Compilers or a good introduction to new concept such as Symbolic Executions. Another interesting point was the notion of research. Working on a project based on a paper from the laboratory in question is very motivating and stimulating because it requires you to do research and understand more than just what you need to implement.
 
+Finally the main challenge was working with new languages with their particularities, more specific libraries with tougher documentation requiring more effort to understand how to use them or tools that requires a lot attempts to install and make them work. It took me a while to understand how does work LLVM and to use in my code to achieve the pass. The project required a lot of adaptation, but it developed cross-disciplinary skills that I'm sure will come in very useful later on.
 
