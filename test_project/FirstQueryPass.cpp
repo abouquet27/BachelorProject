@@ -178,6 +178,7 @@ double matchValue(Value *tested, Value *searched)
     if (llvm::isa<llvm::Instruction>(tested))
     {
         Instruction *I = dyn_cast<Instruction>(tested);
+        //errs() << tabPrefix << "BackTrack Instruction: " << *I << "\n";
 
         if (llvm::isa<llvm::PHINode>(I))
         {
@@ -248,7 +249,7 @@ double compute_query(Instruction *Inst, Value *researched, list<BranchCount> bac
     else
     {
 
-        // errs() << tabPrefix << "Instruction: " << *Inst << "\n";
+        //errs() << tabPrefix << "Instruction: " << *Inst << "\n";
 
         if (llvm::isa<llvm::CallInst>(Inst))
         {

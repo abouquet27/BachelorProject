@@ -9,6 +9,7 @@ export cs = case
 EXPORT PATH := /usr/local/opt/llvm/bin:$PATH"
 
 INCLUDES = -I /usr/local/opt/llvm/include
+coreutilsPath = coreutils-9.3/build/src
 
 cases = basicCondition1 basicCondition2 basicCondition3 basicCondition4 basicCondition5
 cases += arrayfunction forloopfunction1 forloopfunction2 recursion1 recursion2 recursion3
@@ -31,9 +32,10 @@ case: pass
 
 coreutilscase: pass
 	@echo  Compiling coreutils $(cs)
-	$(CC) -emit-llvm -c -S -Xclang -disable-O0-optnone -o coreutils/src/$(cs).ll coreutils/src/$(cs).c
-	opt -p=mem2reg -S -o coreutils/src/$(cs).ll coreutils/src/$(cs).ll
-	opt -load firstquerypass.so -firstquerypass  -enable-new-pm=0 coreutils/src/$(cs).ll
+	extract-bc coreutils-9.3/build/src/$(cs).o -o=coreutils-9.3/build/src/$(cs).bc
+	llvm-dis coreutils-9.3/build/src/$(cs).bc
+	opt -p=mem2reg -S -o coreutils-9.3/build/src/$(cs).ll coreutils-9.3/build/src/$(cs).ll
+	opt -load firstquerypass.so -firstquerypass  -enable-new-pm=0 coreutils-9.3/build/src/$(cs).ll
 	@echo  "Coreutils $(cs) compiled successfully\n"
 
 clean: 

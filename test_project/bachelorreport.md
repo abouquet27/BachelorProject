@@ -70,13 +70,10 @@ When reaching the condition of the while loop, the index has been redefined and 
 The pass computes twice the query count of a function for each its argument: once using the `matchValue` function described above and once using the `returnTrueFunction` to count the total number of queries. It then outputs the value using both function and if the variable is a hot variable. 
 
 ## Results
-    - case from the paper
-    - Does it work on Coreutils 
-        - Why coreutils ?
 
 ### Basic cases
 
-In order to evaluate the correctness on basic code, a set of cases[^3] as been established to tests implementation and constraint handling, and we are going to demonstrate 2 of them.
+In order to evaluate the correctness on basic code, a set of cases[^3] as been established to tests implementation and constraint handling, and we are going to demonstrate 2 of them. As a reminder, the probability $\beta$ that a branch is feasible is fixed to $0.6$ and the parameter $\kappa$ which correspond to the maximum loop iterations and recursion depth is fixed to 1.
 
 [^3]: https://github.com/abouquet27/BachelorProject/tree/main/test_project/cases
 
@@ -120,6 +117,19 @@ $$ = \beta (0 + 0 + 1) +1 = 0.6 + 1 = 1.6$$
 
 More generally, the different base cases have all been computed manually before being submitted to the pass and comparing the results. About twenty base cases have been established, computed and tested to make sure the pass correctly work on these cases.
 
+#### For loop
+```c
+void forloopfunction2(int x){
+    int y = 0;
+    int a = 0;
+    for (int i = 0; i < x; i++) {
+        y = y + 1;
+        a = a + 1;
+    }
+}
+```
+
+
 ### Example from the paper
 
 After creating cases to test the different issues the pass has to handle, the next step was testing it on the example from the paper[^4]. The paper uses this simplified version of the `echo` program. However, the example has been truncated to make it work using the pass, mainly by adding the variable 'arg' in the arguments of the function. Consequently, the pass computes $1.6$ which is the same value as the one computed by the paper and hence slightly strengthens the correctness of the pass
@@ -128,22 +138,17 @@ After creating cases to test the different issues the pass has to handle, the ne
 
 ### Applying the pass Coreutils
 
-An 
-
-
+// TODO 
 
 ## Limitations
 
-    Although the pass works on a number of situations
-    - Very theoritical pass
-    - Can be improved 
-        - Existing pass that can improve the code
-        - More modularity
-    - Tested on some cases but is not garanteed 
-        - Still crash
-        - Generic function
-        - Function that are from an external library
-        - Not properly proved
+Although the pass works on a number of cases including some complex ones, it still has flaws, for instance with pointer to a function that is not constant or switch case that are not taken in account even though they are condition. As a side note, the former is not treated by Klee because it is difficult to analyze a function and the pass could do the same.
+
+Furthermore, the correctness of pass has not been proved and hence its application might generate wrong results. As an example, we can consider the `echo.c` program from the `COREUTILS`, the total number of queries (computed using `returnTrueFunction` as our $c$) should not vary from one value to another since the code analysis remains the same.  
+
+On the other hand, the pass could still be improved on its efficiency. Indeed, the pass enters and analyzes every function that are being called instead of computing them once as the paper planned to do. Thus, the cost of the computation is really heavy and not very useful as function that have already being called will be analyzed again. Moreover, function from external library such as `printf` initally caused the program to crash and hence have been skipped to facilitate the computation. However, this assumptions of skipping function of external libraries can be discussed: on the one hand, it alters the final result but on the other hand the impact on it will become less significant as the size of the code and therefore the depth of the analysis increase. Losing some millionths can be a good way of improving efficiency.
+
+Finally, some existing LLVM pass might exist to make the code easier to analyse. For instance, one major issue where the load and store be cause it was costly when encountering a load to trackback until finding the corresponding store. Hopefully, we did find the pass `mem2reg` which allows us to get rid of the majority of the stores and loads and thus to lower the cost.
 
 ## Personnal discoveries
 
