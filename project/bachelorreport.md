@@ -69,7 +69,7 @@ void loopFunc(int x){
     }
 }
 ```
-When reaching the condition of the while loop, the index has been redefined and thus there are two paths leading to it. In LLVM, there exist `PHINode` which are instructions that regroup the differents paths of the variable, in other words the differents values and the label where they are defined. Therefore, we assume that we only check the paths for which the label is before the current one.
+When reaching the condition of the while loop, the index has been redefined and thus there are two paths leading to it. In LLVM, there exist `PHINode` which are instructions that regroup the differents paths of the variable, in other words the differents values and the label where they are defined. 
 
 ### The pass
 
