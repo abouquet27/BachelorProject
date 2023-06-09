@@ -1,0 +1,30 @@
+lib/libcoreutils_a-printf-frexp.o: ../lib/printf-frexp.c lib/config.h \
+  /usr/local/Cellar/llvm/16.0.4/lib/clang/16/include/stdbool.h \
+  lib/assert.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/assert.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/sys/cdefs.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/sys/_symbol_aliasing.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/sys/_posix_availability.h \
+  ../lib/printf-frexp.h \
+  /usr/local/Cellar/llvm/16.0.4/lib/clang/16/include/float.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/float.h \
+  lib/math.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/math.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/Availability.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/AvailabilityVersions.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/AvailabilityInternal.h
+lib/config.h:
+/usr/local/Cellar/llvm/16.0.4/lib/clang/16/include/stdbool.h:
+lib/assert.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/assert.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/sys/cdefs.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/sys/_symbol_aliasing.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/sys/_posix_availability.h:
+../lib/printf-frexp.h:
+/usr/local/Cellar/llvm/16.0.4/lib/clang/16/include/float.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/float.h:
+lib/math.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/math.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/Availability.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/AvailabilityVersions.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include/AvailabilityInternal.h:
