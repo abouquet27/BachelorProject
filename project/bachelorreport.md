@@ -81,7 +81,7 @@ The pass computes twice the query count of a function for each its argument: onc
 
 In order to evaluate the correctness on basic code, a set of 21 cases[^3] as been established to tests implementation and constraint handling, and we are going to demonstrate 3 of them. As a reminder, the probability $\beta$ that a branch is feasible is fixed to $0.6$ and the parameter $\kappa$ which correspond to the maximum loop iterations and recursion depth is fixed to 1.
 
-[^3]: https://github.com/abouquet27/BachelorProject/tree/main/test_project/cases
+[^3]: https://github.com/abouquet27/BachelorProject/tree/main/project/cases
 
 #### Basic condition 
 
@@ -162,7 +162,11 @@ Finally, some existing LLVM pass might exist to make the code easier to analyse.
 
 ## Conclusion
 
-Overall, the implementation of the pass has demonstrated its computing capacity and robustness on different cases, from basic to complex ones. The main challenge was about implementing the QCE without adding computing cost and be correct. Furthermore, it prooves that the pass described in the paper years ago still works today.  Even though there is still room for improvement, we believe that the implementation did achieve its goal, espcially on complex cases as the `COREUTILS`.
+In this report, we have presented the implementation of the query count estimation (QCE) heuristic from the paper "Efficient State Merging in Symbolic Execution" in the form of an LLVM pass. We explained the purpose of the heuristic and its formulas, and then provided a detailed description of the implementation. We also discussed the results of testing the pass on basic cases, the example from the paper, and a set of coreutils programs.
+
+Overall, the implementation of the pass closely follows the description in the paper, and it successfully computes the query count for the given examples. The pass demonstrates its effectiveness in identifying hot variables and providing insights into the potential performance impact of state merging in symbolic execution. However, it is important to note that the pass has limitations and may not work on all programs. It may crash or fail to terminate on certain complex programs. Nevertheless, the pass shows promise and can serve as a starting point for future research.
+
+In conclusion, this project contributes to a better understanding of the query count estimation heuristic and provides a practical implementation that can be used to analyze and optimize symbolic execution techniques.
 
 ## Personnal discoveries
 

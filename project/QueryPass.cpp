@@ -184,7 +184,7 @@ double matchValue(Value *tested, Value *searched)
 
             double sum = 0;
 
-            for (auto   &block : PHI->blocks())
+            for (auto &block : PHI->blocks())
             {
                 if (blockComeBefore(block, I->getParent()) == 1)
                 {
