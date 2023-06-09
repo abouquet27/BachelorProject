@@ -79,7 +79,7 @@ The pass computes twice the query count of a function for each its argument: onc
 
 ### Basic cases
 
-In order to evaluate the correctness on basic code, a set of 21 cases[^3] as been established to tests implementation and constraint handling, and we are going to demonstrate 2 of them. As a reminder, the probability $\beta$ that a branch is feasible is fixed to $0.6$ and the parameter $\kappa$ which correspond to the maximum loop iterations and recursion depth is fixed to 1.
+In order to evaluate the correctness on basic code, a set of 21 cases[^3] as been established to tests implementation and constraint handling, and we are going to demonstrate 3 of them. As a reminder, the probability $\beta$ that a branch is feasible is fixed to $0.6$ and the parameter $\kappa$ which correspond to the maximum loop iterations and recursion depth is fixed to 1.
 
 [^3]: https://github.com/abouquet27/BachelorProject/tree/main/test_project/cases
 
@@ -107,7 +107,7 @@ $$ = \beta q(10,c) + \beta q(10,c) + 1 = 0 + 0 + 1 = 1 $$
 #### Recursion
 
 ```c
-void recursionFunction1(int x){
+void recursionFunction(int x){
     if (x > 0){
         printf("recursion needed");
         recursionFunction1(x-1);
@@ -137,7 +137,7 @@ void doublewhileloopfunction(int* tab, int size) {
     }
 }
 ```
-The case is rather interesting because the functions has 2 arguments and there is a double while loop. T
+The case is rather interesting because the functions has 2 arguments and there is a double while loop. The result of evaluating the function `compute_query` on `tab` will be equals to $0$ as the argument is not part of any condition in the program. However, the argument `size` will have $1.6$ has result because it is inside two conditions.
 
 
 ### Example from the paper
@@ -170,4 +170,9 @@ Speaking of courses, this project and working with LLVM was a good application o
 
 Finally the main challenge was working with new languages with their particularities, more specific libraries with tougher documentation requiring more effort to understand how to use them or tools that requires a lot attempts to install and make them work. It took me a while to understand how does LLVM work and to use in my code to achieve the pass. The project required a lot of adaptation, but it developed cross-disciplinary skills that I'm sure will come in very useful later on.
 
-## Bibliography
+## References
+
+- « Getting started with writing LLVM passes - Sebastian Österlund ».  https://osterlund.xyz/posts/2017-11-28-LLVM-pass.html.
+- GitHub. « Coreutils/Src at Master · Coreutils/Coreutils ». https://github.com/coreutils/coreutils.
+- KLEE http://klee.github.io/.
+- Kuznetsov, Volodymyr, Johannes Kinder, Stefan Bucur, et George Candea. « Efficient State Merging in Symbolic Execution », s. d.
