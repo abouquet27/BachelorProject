@@ -1,5 +1,3 @@
-double result_a = 0.6;
-
 void basicCondition3(int a){
   int x = 0;
   int b = 19;
@@ -19,5 +17,4 @@ void basicCondition3(int a){
   int y = x + a;
 }
 
-// The pass should output 0.6 has correct value (using the matchValue function) and 1.6 using the true function:
-// 
+// The pass should output 0.6 has correct value (using the matchValue function) and 1.6 using the true function on argument a

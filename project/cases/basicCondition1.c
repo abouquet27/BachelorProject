@@ -1,6 +1,4 @@
-#include <stdio.h>
-
-double result_arg = 1.0;
+//double result_a = 1.0;
 
 void basicCondition(int a){
   int x = 0;
@@ -16,6 +14,4 @@ void basicCondition(int a){
 
 }
 
-// The pass should output 1 has correct value (using the matchValue function) and 1 using the true function:
-// => q(6,c) = beta*q(7,c) + beta*q(10,c) + c(a>= 5, a)
-// => q(6,c) = 0 + 0 + 1
+// The pass should output 1 has correct value (using the matchValue function) and 1 using the true function on argument a

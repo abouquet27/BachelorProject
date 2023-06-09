@@ -1,4 +1,4 @@
-double result_x = 2.176;
+//double result_x = 2.176;
 
 void loopandrecursion2(int x){
     int i = 0;
@@ -13,3 +13,5 @@ void loopandrecursion2(int x){
         i++;
     }
 }
+
+// The pass should output 2.176 when using the matchValue function and 2.176 when using the true function on argument x

@@ -1,5 +1,3 @@
-double result_x = 1.6;
-double result_y = 1.6;
 
 void tabFunction(int x, int* tab){
     int a = 0;
@@ -9,3 +7,6 @@ void tabFunction(int x, int* tab){
     }
     return;
 }
+
+// The pass should output 1.6 when using the matchValue function and 1.6 when using the true function on argument x
+// The pass should output 1.6 when using the matchValue function and 1.6 when using the true function on argument tab

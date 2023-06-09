@@ -1,5 +1,5 @@
-double result_x_recursionFun = 1.6;
-double result_y_main = 1.6;
+//double result_x_recursionFun = 1.6;
+//double result_y_start = 1.6;
 
 
 void recursionFun(int x){
@@ -22,3 +22,7 @@ void start(int y){
 
     return;
 }
+
+// The pass should output 1.6 when using the matchValue function and 1.6 when using the true function on argument x (recursionFun)
+// The pass should output 1.6 when using the matchValue function and 1.6 when using the true function on argument y (start)
+

@@ -8,3 +8,5 @@ void forloopfunction2(int x){
         a = a + 1;
     }
 }
+
+// The pass should output 1.0 when using the matchValue function and 1.0 when using the true function on argument x

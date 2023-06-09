@@ -1,4 +1,4 @@
-double result_a = 2.2;
+//double result_a = 2.2;
 
 void basicCondition5(int a){
   int x = 0;
@@ -19,4 +19,4 @@ void basicCondition5(int a){
 
 }
 
-// The pass should output 2.2 has correct value (using the matchValue function) and 2.2 using the true function:
+// The pass should output 2.2 has correct value (using the matchValue function) and 2.2 using the true function on argument a

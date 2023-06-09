@@ -1,4 +1,4 @@
-double result_x = 1.6;
+//double result_x = 1.6;
 
 void doubleforLoop1(int x){
     int y = 0;
@@ -10,3 +10,5 @@ void doubleforLoop1(int x){
         }
     }
 }
+
+// The pass should output 1.6 when using the matchValue function and 1.6 when using the true function on argument x

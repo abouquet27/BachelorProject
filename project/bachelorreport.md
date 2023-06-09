@@ -148,11 +148,11 @@ After creating cases to test the different issues the pass has to handle, the ne
 
 ### Applying the pass on `COREUTILS`
 
-The next step in evaluating the pass is to test its robustness, i.e. its ability not to crash when applied to programmes that are much more complex than the examples shown above. To this end, the pass was applied to 30 coretutils of different purposes and sizes. The coretools were chosen for 2 reasons: firstly, because they are programmes rich in complexity and variety, and secondly, because the paper also uses the coreutils to carry out its evaluations.
+The next step in evaluating the pass is to test its robustness, i.e. its ability not to crash when applied to programmes that are much more complex than the examples shown above. To this end, the pass was applied to 30 `COREUTILS` of different purposes and sizes. They were chosen for 2 reasons: firstly, because they are programmes rich in complexity and variety, and secondly, because the paper also uses them to carry out its evaluations. 
 
+Out of 30 coreutils tested, 21 worked (i.e. the pass worked on all the functions of the coreutils tested and did not crash), 7 crashed (i.e. the pass did not finish and an error was thrown) and 2 did not terminate. The results is rather satisfying as it is 70% of the `COREUTILS` tested that works. Regarding those who does not terminate, the main explanation is the increasing complexity of the code. In fact, the more complex code becomes (by using function calls, recursion, etc), the more time it will need as the number of exploration path can increase exponentially. About those who crashed, the error thrown is `Illegal Instruction: 4` which is an issue with compile flags and might not happen on other OS. 
 
-
-## Limitations
+### Limitations
 
 Although the pass works on a number of cases including some complex ones, it still has flaws, for instance hardly pointers to a function that is not constant or switch case that are not taken in account even though they are condition. As a side note, the former is not treated by Klee because it is difficult to analyze a function and the pass could do the same. Furthermore, the correctness of pass has not been proved and hence its application might generate wrong results.
 
@@ -161,6 +161,8 @@ On the other hand, the pass could still be improved on its efficiency. Indeed, t
 Finally, some existing LLVM pass might exist to make the code easier to analyse. For instance, one major issue where the load and store because it was costly when encountering a load to trackback until finding the corresponding store. Hopefully, we did find the pass `mem2reg` which allows us to get rid of the majority of the stores and loads and thus to lower the cost.
 
 ## Conclusion
+
+Overall, the implementation of the pass has demonstrated its computing capacity and robustness on different cases, from basic to complex ones. The main challenge was about implementing the QCE without adding computing cost and be correct. Furthermore, it prooves that the pass described in the paper years ago still works today.  Even though there is still room for improvement, we believe that the implementation did achieve its goal, espcially on complex cases as the `COREUTILS`.
 
 ## Personnal discoveries
 
@@ -176,3 +178,4 @@ Finally the main challenge was working with new languages with their particulari
 - GitHub. « Coreutils/Src at Master · Coreutils/Coreutils ». https://github.com/coreutils/coreutils.
 - KLEE http://klee.github.io/.
 - Kuznetsov, Volodymyr, Johannes Kinder, Stefan Bucur, et George Candea. « Efficient State Merging in Symbolic Execution », s. d.
+- « The LLVM Compiler Infrastructure Project ». https://llvm.org/.

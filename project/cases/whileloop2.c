@@ -18,3 +18,5 @@ void whileloopfunction(int x){
         }
     }
 }
+
+// The pass should output 1.0 when using the matchValue function and 2.92 when using the true function on argument x

@@ -1,4 +1,4 @@
-double result_loopandrecursion = 0.816;
+//double result_loopandrecursion = 0.816;
 
 void loopandrecursion(int x){
     for (int i = 0; i < 10; i++){
@@ -10,3 +10,5 @@ void loopandrecursion(int x){
         }
     }
 }
+
+// The pass should output 0.816 when using the matchValue function and 2.176 when using the true function on argument x
