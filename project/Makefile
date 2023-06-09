@@ -14,7 +14,7 @@ coreutilsPath = coreutils-9.3/build/src
 cases = basicCondition1 basicCondition2 basicCondition3 basicCondition4 basicCondition5
 cases += arrayfunction forloopfunction1 forloopfunction2 recursion1 recursion2 externallibrary
 cases += caseTestFromDoc loopandrecursion1 loopandrecursion2 doubleforloop1 doublewhileloop forandwhileloopcombined
-cases += whileloop1 whileloop2 
+cases += whileloop1 whileloop2 mixfunction
 all: $(cases) 
 
 $(cases): 
